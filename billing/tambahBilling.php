@@ -1,48 +1,72 @@
 <?php
-	// include_once("is_logged_in.php");
+	include_once("../is_logged_in.php");
 	include_once("../config.php");
+
+	// error_reporting(0);
 
 	if(isset($_POST['submit'])){
 		try{
-			$save = mysqli_query($mysqli, 
-				"INSERT INTO member (nama, username, email, alamat, telepon)
+			if(isset($_POST['username'])){
+				$member = mysqli_query($conn, "SELECT * FROM member WHERE username = '$_POST[username]'");
+				$data = mysqli_fetch_array($member);
+			}
+
+			$id_user = 0;
+			$id_diskon = 1;
+
+			if($data){
+				$id_user = $data['id_member'];
+				$id_diskon = $data['id_promo'];
+			}
+
+			if($id_user == 0){
+				echo "<script>alert('Username not found!')</script>";
+				return;
+			}
+
+			if($_POST['waktu'] <= 0){
+				echo "<script>alert('Pilih total waktu!')</script>";
+				return;
+			}
+
+			$promo = mysqli_query($conn, "SELECT * FROM promo WHERE id_promo = '$id_diskon'");
+			$data_diskon = mysqli_fetch_array($promo);
+
+			$diskon = 0;
+			$tier = '';
+
+			if($data_diskon){
+				$diskon = $data_diskon['diskon'];
+				$tier = $data_diskon['tier'];
+			}
+
+			$current_date = date("Y/m/d");
+
+			$save = mysqli_query($conn, 
+				"INSERT INTO billing (id_operator, id_user, waktu, tanggal, diskon, status_billing)
 					VALUES(
-						'$_POST[nama]', 
-						'$_POST[username]',
-						'$_POST[email]', 
-						'$_POST[alamat]', 
-						'$_POST[telepon]'
+						'$_SESSION[id_operator]', 
+						'$id_user',
+						'$_POST[waktu]', 
+						'$current_date',
+						'$diskon',
+						0
 					)
 				"
 			);
+
 			if($save){
-				echo
-				"<script>
-					alert('Successfully add new member!');
-					document.location = '../index.php'
-				</script>";
+				header("Location: /billing/konfirmasiBilling.php?bill_id=".mysqli_insert_id($conn));
 			} else {
 				echo
 				"<script>
-					alert('Add new member failed!');
-					document.location = '../index.php'
+					alert('Failed!');
 				</script>";
+				return;
 			}
 		} catch (Exception $e) {
 			echo $e->getMessage();
 			die();
-		}
-	}
-
-	if(isset($_GET['id'])){
-		$member = mysqli_query($mysqli, "SELECT * FROM member WHERE id_member = 8");
-		$data = mysqli_fetch_array($member);
-		if($data){
-			$vnama = $data['nama'];
-			$vusername = $data['username'];
-			$vemail = $data['email'];
-			$valamat = $data['alamat'];
-			$vtelepon = $data['telepon'];
 		}
 	}
 ?>
@@ -54,43 +78,46 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link rel="stylesheet" href="../css/bootstrap.min.css">
-	<title>Edit member</title>
+	<title>Tambah Billing</title>
 </head>
 <body>
-	<!-- <?php include('navbar.php') ?> -->
+	<?php include('../navbar.php') ?>
 	<main class="mx-5">
 		<section>
-			<h3 class="my-5">Tabel Member Warnet</h3>
 			<div class="card mt-5">
-				<div class="card-header bg-primary text-white">Input member baru</div>
+				<div class="card-header bg-primary text-white">Buat billing baru</div>
 				<div class="card-body">
 					<form method="post" action="">
 						<div class="form-group">
-							<label for="name">Nama</label>
-							<input type="text" name="nama" value="<?=@$vnama?>" class="form-control" id="name" required placeholder="Name">
-						</div>
-						<div class="form-group">
 							<label for="username">Username</label>
-							<input type="text" name="username" value="<?=@$vusername?>" class="form-control" id="username" required placeholder="Username">
+							<input type="text" name="username" class="form-control" id="username" required placeholder="Username member">
+						</div>
+						<label for="name">Waktu</label><br>
+						<select class="form-select mb-2" name="waktu" aria-label="Default select example">
+							<option selected>Pilih waktu</option>
+							<option value="1">1 jam</option>
+							<option value="2">2 jam</option>
+							<option value="3">3 jam</option>
+							<option value="4">4 jam</option>
+							<option value="5">5 jam</option>
+							<option value="6">6 jam</option>
+							<option value="7">7 jam</option>
+							<option value="8">8 jam</option>
+						</select>
+						<div class="form-group">
+							<label for="operator">Operator</label>
+							<input type="text" name="operator" class="form-control" value="<?= $_SESSION['nama']?>" id="operator" disabled placeholder="Operator">
 						</div>
 						<div class="form-group">
-							<label for="email">Email</label>
-							<input type="email" name="email" value="<?=@$vemail?>" class="form-control" id="email" required placeholder="Email">
+							<label for="tanggal">Tanggal</label>
+							<input type="text" name="tanggal" class="form-control" value="<?= date("Y/m/d") ?>" id="tanggal" disabled placeholder="Tanggal">
 						</div>
-						<div class="form-group">
-							<label for="alamat">Alamat</label>
-							<input type="text" name="alamat" value="<?=@$valamat?>" class="form-control" id="alamat" required placeholder="Address">
-						</div>
-						<div class="form-group">
-							<label for="telepon">Telepon</label>
-							<input type="tel" name="telepon" value="<?=@$vtelepon?>" class="form-control" id="telepon" required placeholder="Telephone">
-						</div>
-						<button type="submit" class="btn btn-success" name="submit">Simpan</button>
-						<button type="reset" class="btn btn-warning text-white" name="reset">Reset</button>
+						<button type="submit" class="btn btn-primary" name="submit">Konfirmasi</button>
+						<button type="reset" class="btn btn-danger text-white" name="reset">Reset</button>
 					</form>
 				</div>
 			</div>
 		</section>
-	<script type="text/javascript"> src="js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="../js/bootstrap.min.js"></script>
 </body>
 </html>

@@ -1,10 +1,10 @@
 <?php
-	// include_once("is_logged_in.php");
+	include_once("../is_logged_in.php");
 	include_once("../config.php");
 
 	if(isset($_POST['submit'])){
 		try{
-			$edit = mysqli_query($mysqli, 
+			$edit = mysqli_query($conn, 
 				"UPDATE member SET
 						nama = '$_POST[nama]', 
 						username = '$_POST[username]',
@@ -34,7 +34,7 @@
 	}
 
 	if(isset($_GET['id'])){
-		$member = mysqli_query($mysqli, "SELECT * FROM member WHERE id_member = '$_GET[id]'");
+		$member = mysqli_query($conn, "SELECT * FROM member WHERE id_member = '$_GET[id]'");
 		$data = mysqli_fetch_array($member);
 		if($data){
 			$vnama = $data['nama'];
@@ -56,12 +56,11 @@
 	<title>Edit member</title>
 </head>
 <body>
-	<!-- <?php include('navbar.php') ?> -->
+	<?php include('../navbar.php') ?>
 	<main class="mx-5">
 		<section>
-			<h3 class="my-5">Tabel Member Warnet</h3>
 			<div class="card mt-5">
-				<div class="card-header bg-primary text-white">Input member baru</div>
+				<div class="card-header bg-primary text-white">Edit member</div>
 				<div class="card-body">
 					<form method="post" action="">
 						<div class="form-group">

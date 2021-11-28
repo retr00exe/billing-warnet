@@ -1,36 +1,35 @@
 <?php
-	// Create database connection using config file
 	include_once("config.php");
-	error_reporting(0);
+	// error_reporting(0);
  	session_start();
 
-	 if (isset($_SESSION['nama'])) {
+	 if (isset($_SESSION['login'])) {
 		header("Location:/");
 	}
 
-	// Check If form submitted, insert form data into users table.
-	if(isset($_POST['submit'])) {
+	if (isset($_SESSION['nama'])) {
+		header("Location:/");
+	}
+
+	if(isset($_POST['login'])) {
 		try {
 			$email = $_POST['email'];
 			$password = $_POST['password'];
 
-			// include database connection file
-			include_once("../config.php");
-			// Insert user data into table
-
-			$result = mysqli_query($mysqli, "SELECT * FROM operator WHERE email='$email'");
-			if ($result->num_rows > 0){
-				$row = mysqli_fetch_array($result);
+			$result = mysqli_query($conn, "SELECT * FROM operator WHERE email='$email'");
+			if (mysqli_num_rows($result) === 1){
+				$row = mysqli_fetch_assoc($result);
 				if (password_verify($password, $row['password'])){
+					$_SESSION['login'] = true;
 					$_SESSION['nama'] = $row['nama'];
-					echo 'Berhasil Login!';
+					$_SESSION['id_operator'] = $row['id_operator'];
+					echo "<script>alert('Login success!')</script>";
 					header("Location:/");
-				} else {
-					echo 'Password salah!';
+					exit;
 				}
-			} else {
-				echo 'Email tidak valid!';
-			}
+			} 
+
+			$error = true;
 
 		} catch (Exception $e) {
 			echo $e->getMessage();
@@ -42,34 +41,36 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-
-<meta name="viewport" content="width=device-width, initial-
-scale=1.0">
-
-<title>Login</title>
-
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="css/bootstrap.min.css">
+	<title>Login</title>
+	<style>
+		.login-box {
+			width: 25rem;
+			margin-top: 25rem;
+		}
+	</style>
 </head>
 <body>
 	<main>
-	<div>
-			<form action="" method="post" name="form">
-				<h3>Login Warnet</h3>
-				<table width="25%" border="0">
-					<tr>
-						<td>Email</td>
-						<td><input type="text" name="email" required></td>
-					</tr>
-					<tr>
-						<td>Password</td>
-						<td><input type="password" name="password" required></td>
-					</tr>
-					<tr>
-						<td></td>
-						<td><input type="submit" name="submit" value="Login"></td>
-					</tr>
-				</table>
+		<div class="container login-box">
+			<h1 class="mb-5">Login</h1>
+			<form method="post" action="">
+				<div class="form-group">
+					<label for="name">Email</label>
+					<input type="text" name="email" value="<?=@$vnama?>" class="form-control" id="email" required placeholder="Email">
+				</div>
+				<div class="form-group">
+					<label for="username">Password</label>
+					<input type="password" name="password" value="<?=@$vusername?>" class="form-control" id="password" required placeholder="Password">
+				</div>
+				<button type="submit" class="btn btn-primary text-white" name="login">Submit</button>
+				<?php if(isset($error)) : ?>
+					<p class="text-danger">Email/password salah</p>
+				<?php endif; ?>
+				<p class="mt-5">Belum punya akun? <a href="/register.php">register</a></p>
 			</form>
 		</div>
 	</main>

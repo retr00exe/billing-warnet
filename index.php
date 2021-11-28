@@ -1,20 +1,20 @@
 <?php
-	// include_once("is_logged_in.php");
+	include_once("is_logged_in.php");
 	include_once("config.php");
 
-	$member = mysqli_query($mysqli, "SELECT
-		m.nama, m.username, m.email, m.waktu, m.alamat, m.telepon, m.created_at, m.is_deleted, p.tier, p.diskon
+	$member = mysqli_query($conn, "SELECT
+		m.id_member, m.nama, m.username, m.email, m.waktu, m.alamat, m.telepon, m.created_at, m.is_deleted, p.tier, p.diskon
 		FROM member AS m 
 		INNER JOIN promo AS p 
 		ON 
 		m.id_promo = p.id_promo
 	");
-	$operator = mysqli_query($mysqli, "SELECT * FROM operator");
+	$operator = mysqli_query($conn, "SELECT * FROM operator");
 
 	if(isset($_GET['id'])){
 		if(isset($_GET['method'])){
 			if($_GET['method'] == 'ban'){
-				$soft_delete = mysqli_query($mysqli, "UPDATE member SET is_deleted=1 WHERE id_member = '$_GET[id]'");
+				$soft_delete = mysqli_query($conn, "UPDATE member SET is_deleted=1 WHERE id_member = '$_GET[id]'");
 				if($soft_delete){
 					echo
 						"<script>
@@ -23,7 +23,7 @@
 						</script>";
 				}
 			}else if($_GET['method'] == 'activate'){
-				$soft_delete = mysqli_query($mysqli, "UPDATE member SET is_deleted=0 WHERE id_member = '$_GET[id]'");
+				$soft_delete = mysqli_query($conn, "UPDATE member SET is_deleted=0 WHERE id_member = '$_GET[id]'");
 				if($soft_delete){
 					echo
 						"<script>
@@ -81,7 +81,7 @@
 						<td><?=$item['created_at']?></td>
 						<td><?=$item['tier']?></td>
 						<td><?=$item['diskon']?>%</td>
-						<td><?=$item['is_deleted'] == 0 ? 'Active' : 'Banned' ?></td>
+						<td class="<?=$item['is_deleted'] == 1 ? 'text-danger' : 'text-success' ?>"><?=$item['is_deleted'] == 0 ? 'Active' : 'Banned' ?></td>
 						<td>
 							<a href="member/editMember.php?id=<?=@$item['id_member']?>" class="btn btn-warning">Edit</a>
 							<a href="index.php?method=<?=$item['is_deleted'] == 0 ? 'ban' : 'activate' ?>&id=<?=@$item['id_member']?>" onclick="return confirm('Are you sure you want to <?=$item['is_deleted'] == 0 ? 'banned' : 'activate' ?> this?')"class="btn btn-<?=$item['is_deleted'] == 0 ? 'danger' : 'primary' ?>"><?=$item['is_deleted'] == 0 ? 'Ban' : 'Activate' ?></a>
@@ -114,7 +114,7 @@
 			</table>
 		</section>
 		<section class="mt-5">
-			<a href="billing/tambahBilling.php" class="btn btn-primary">Tambah Billing</a>
+			<a href="billing/tambahBilling.php" class="btn btn-primary mb-5">Tambah Billing</a>
 		</section>
 	</main>
 	<script type="text/javascript"> src="js/bootstrap.min.js"></script>
